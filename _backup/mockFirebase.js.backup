@@ -1,0 +1,258 @@
+// Mock Firebase implementation using localStorage
+// This simulates Firebase Auth and Realtime Database
+
+const STORAGE_KEY = 'englishhop_data';
+const AUTH_KEY = 'englishhop_auth';
+
+// Initialize with seed data if not exists
+const initData = () => {
+  if (!localStorage.getItem(STORAGE_KEY)) {
+    const seedData = {
+      users: {
+        'admin-uid-001': {
+          email: 'admin@englishhop.com',
+          role: 'admin',
+          createdAt: Date.now()
+        }
+      },
+      teachers: {
+        'teacherId123': {
+          name: 'John Doe',
+          email: 'john@mail.com',
+          ratePerHour: 5000,
+          paymentMethod: 'direct',
+          slotsPurchased: 10,
+          slotsUsed: 3,
+          slotsAvailable: 7,
+          paymentDetails: {
+            bank: 'GTBank',
+            accountName: 'John Doe',
+            accountNumber: '012xxxxx'
+          }
+        }
+      },
+      students: {
+        'studentId456': {
+          name: 'Sandra',
+          email: 'sandra@mail.com',
+          level: 'Beginner',
+          goals: 'Improve pronunciation',
+          preferredTimes: 'Evenings',
+          matchedTeacher: 'teacherId123'
+        }
+      },
+      matches: {
+        'matchId789': {
+          teacherId: 'teacherId123',
+          studentId: 'studentId456',
+          rate: 5000,
+          paymentMethod: 'platform',
+          createdAt: 1735400000
+        }
+      },
+      slotPurchases: {
+        'purchase987': {
+          teacherId: 'teacherId123',
+          slots: 5,
+          amount: 5000,
+          timestamp: 1735400001
+        }
+      },
+      payments: {
+        'payment222': {
+          studentId: 'studentId456',
+          teacherId: 'teacherId123',
+          amount: 5000,
+          platformFee: 750,
+          teacherReceives: 4250,
+          paymentMethod: 'platform',
+          timestamp: 1735401111
+        }
+      }
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(seedData));
+  }
+  
+  // Set default admin user
+  if (!localStorage.getItem(AUTH_KEY)) {
+    const authData = {
+      'admin@englishhop.com': {
+        password: 'admin123',
+        uid: 'admin-uid-001'
+      },
+      'john@mail.com': {
+        password: 'teacher123',
+        uid: 'teacherId123'
+      },
+      'sandra@mail.com': {
+        password: 'student123',
+        uid: 'studentId456'
+      }
+    };
+    localStorage.setItem(AUTH_KEY, JSON.stringify(authData));
+  }
+};
+
+initData();
+
+// Mock Auth
+let currentUser = null;
+let authStateListeners = [];
+
+export const auth = {
+  currentUser: null,
+  onAuthStateChanged: (callback) => {
+    authStateListeners.push(callback);
+    // Immediately call with current state
+    callback(currentUser);
+    // Return unsubscribe function
+    return () => {
+      authStateListeners = authStateListeners.filter(l => l !== callback);
+    };
+  }
+};
+
+export const createUserWithEmailAndPassword = async (authInstance, email, password) => {
+  const authData = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+  
+  if (authData[email]) {
+    throw new Error('Email already in use');
+  }
+  
+  const uid = 'uid-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  authData[email] = { password, uid };
+  localStorage.setItem(AUTH_KEY, JSON.stringify(authData));
+  
+  currentUser = { uid, email };
+  auth.currentUser = currentUser;
+  authStateListeners.forEach(listener => listener(currentUser));
+  
+  return { user: currentUser };
+};
+
+export const signInWithEmailAndPassword = async (authInstance, email, password) => {
+  const authData = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+  
+  if (!authData[email] || authData[email].password !== password) {
+    throw new Error('Invalid email or password');
+  }
+  
+  currentUser = { uid: authData[email].uid, email };
+  auth.currentUser = currentUser;
+  authStateListeners.forEach(listener => listener(currentUser));
+  
+  return { user: currentUser };
+};
+
+export const signOut = async () => {
+  currentUser = null;
+  auth.currentUser = null;
+  authStateListeners.forEach(listener => listener(null));
+};
+
+export const onAuthStateChanged = (authInstance, callback) => {
+  return auth.onAuthStateChanged(callback);
+};
+
+// Mock Database
+let dbListeners = {};
+
+export const db = {};
+
+export const ref = (database, path) => {
+  return { path };
+};
+
+export const set = async (reference, data) => {
+  const dbData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  const parts = reference.path.split('/');
+  
+  let current = dbData;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (!current[parts[i]]) current[parts[i]] = {};
+    current = current[parts[i]];
+  }
+  current[parts[parts.length - 1]] = data;
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dbData));
+  notifyListeners(reference.path);
+};
+
+export const push = (reference) => {
+  const pushId = 'push-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  return { path: reference.path + '/' + pushId };
+};
+
+export const get = async (reference) => {
+  const dbData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  const parts = reference.path.split('/');
+  
+  let current = dbData;
+  for (let part of parts) {
+    if (!current || !current[part]) {
+      return { exists: () => false, val: () => null };
+    }
+    current = current[part];
+  }
+  
+  return {
+    exists: () => current !== null && current !== undefined,
+    val: () => current
+  };
+};
+
+export const child = (parentRef, path) => {
+  return { path: parentRef.path ? `${parentRef.path}/${path}` : path };
+};
+
+export const update = async (reference, updates) => {
+  const dbData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  const parts = reference.path.split('/');
+  
+  let current = dbData;
+  for (let i = 0; i < parts.length; i++) {
+    if (i === parts.length - 1) {
+      current[parts[i]] = { ...current[parts[i]], ...updates };
+    } else {
+      if (!current[parts[i]]) current[parts[i]] = {};
+      current = current[parts[i]];
+    }
+  }
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dbData));
+  notifyListeners(reference.path);
+};
+
+export const onValue = (reference, callback) => {
+  const path = reference.path;
+  
+  if (!dbListeners[path]) {
+    dbListeners[path] = [];
+  }
+  dbListeners[path].push(callback);
+  
+  // Immediately call with current value
+  get(reference).then(snapshot => callback(snapshot));
+  
+  // Return unsubscribe function
+  return () => {
+    if (dbListeners[path]) {
+      dbListeners[path] = dbListeners[path].filter(cb => cb !== callback);
+    }
+  };
+};
+
+const notifyListeners = (path) => {
+  // Notify all listeners for this path and parent paths
+  Object.keys(dbListeners).forEach(listenerPath => {
+    if (path.startsWith(listenerPath) || listenerPath.startsWith(path)) {
+      const reference = { path: listenerPath };
+      dbListeners[listenerPath].forEach(callback => {
+        get(reference).then(snapshot => callback(snapshot));
+      });
+    }
+  });
+};
+
+// Keep the same exports for compatibility
+export { auth as getAuth, db as getDatabase };

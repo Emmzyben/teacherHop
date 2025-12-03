@@ -1,0 +1,585 @@
+/*
+README
+
+Project: EnglishHop - Pure React (MVP)
+What this contains:
+- A single-file React app (App.jsx) and a small firebase.js helper shown below.
+- Uses Firebase (Auth + Realtime Database) v9 modular API.
+- Implements core flows: teacher buys slots, admin matches students, student pays (simulated), teachers set rates, basic dashboards for teacher/student/admin.
+
+How to use:
+1. Create a Firebase project and enable Authentication (Email/Password) and Realtime Database (in test mode while developing).
+2. Copy the firebaseConfig object in firebase.js with your project's config.
+3. Create a React app (Create React App) and replace src/App.jsx and src/index.js with the files below. Add src/firebase.js.
+4. Install deps:
+   npm install firebase react-router-dom
+5. Run: npm start
+
+Notes:
+- Payment flows are simulated: clicking Buy Slots or Pay Lesson writes directly to the Realtime Database. Replace with Flutterwave/Stripe as needed.
+- This is an MVP skeleton. Add form validation, security rules, and production payment integration before going live.
+
+====================================
+File: src/firebase.js
+====================================
+*/
+
+// src/firebase.js
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getDatabase } from 'firebase/database';
+
+const firebaseConfig = {
+  apiKey: "REPLACE_WITH_YOUR_API_KEY",
+  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+  databaseURL: "REPLACE_WITH_YOUR_DATABASE_URL",
+  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
+  storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
+  messagingSenderId: "REPLACE_WITH_YOUR_SENDER_ID",
+  appId: "REPLACE_WITH_YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getDatabase(app);
+
+
+/*
+====================================
+File: src/App.jsx
+====================================
+*/
+
+// src/App.jsx
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { auth, db } from './firebase';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth';
+import {
+  ref,
+  set,
+  push,
+  get,
+  child,
+  update,
+  onValue
+} from 'firebase/database';
+
+// Simple styling
+const containerStyle = { maxWidth: 960, margin: '24px auto', fontFamily: 'Inter, system-ui, sans-serif' };
+const card = { padding: 16, border: '1px solid #eee', borderRadius: 8, marginBottom: 12 };
+
+function App() {
+  return (
+    <Router>
+      <div style={containerStyle}>
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/teacher/*" element={<Protected role="teacher"><TeacherApp /></Protected>} />
+          <Route path="/student/*" element={<Protected role="student"><StudentApp /></Protected>} />
+          <Route path="/admin/*" element={<Protected role="admin"><AdminApp /></Protected>} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+function Header(){
+  const [user, setUser] = useState(null);
+  useEffect(()=> onAuthStateChanged(auth, u => setUser(u)), []);
+  return (
+    <header style={{...card, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+      <div>
+        <Link to="/" style={{textDecoration:'none', color:'#111', fontWeight:700}}>EnglishHop (MVP)</Link>
+      </div>
+      <nav>
+        <Link to="/" style={{marginRight:12}}>Home</Link>
+        {!user && <><Link to="/login" style={{marginRight:12}}>Login</Link><Link to="/register">Register</Link></>}
+        {user && <button onClick={()=>signOut(auth)}>Logout</button>}
+      </nav>
+    </header>
+  )
+}
+
+function Home(){
+  return (
+    <div>
+      <h2>Welcome — MVP</h2>
+      <p>Use the Register page to create an account. Choose a role: teacher, student, or admin.</p>
+      <p>After registering, go to the appropriate dashboard.</p>
+    </div>
+  )
+}
+
+function Register(){
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('teacher');
+  const navigate = useNavigate();
+
+  async function handleRegister(e){
+    e.preventDefault();
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
+    // create profile in DB
+    await set(ref(db, `users/${uid}`), {
+      email, role, createdAt: Date.now()
+    });
+    // also set basic node for teacher/student
+    if(role === 'teacher'){
+      await set(ref(db, `teachers/${uid}`), {
+        name: email.split('@')[0], email, ratePerHour: 0, paymentMethod: 'direct', slotsPurchased:0, slotsUsed:0, slotsAvailable:0
+      });
+    }
+    if(role === 'student'){
+      await set(ref(db, `students/${uid}`), {
+        name: email.split('@')[0], email, level: '', goals: '', preferredTimes: '', matchedTeacher: null
+      });
+    }
+    navigate(role === 'teacher' ? '/teacher' : role === 'student' ? '/student' : '/admin');
+  }
+
+  return (
+    <div style={card}>
+      <h3>Register</h3>
+      <form onSubmit={handleRegister}>
+        <div style={{marginBottom:8}}>
+          <label>Email</label><br />
+          <input value={email} onChange={e=>setEmail(e.target.value)} required />
+        </div>
+        <div style={{marginBottom:8}}>
+          <label>Password</label><br />
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} required />
+        </div>
+        <div style={{marginBottom:8}}>
+          <label>Role</label><br />
+          <select value={role} onChange={e=>setRole(e.target.value)}>
+            <option value="teacher">Teacher</option>
+            <option value="student">Student</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button type="submit">Register</button>
+      </form>
+    </div>
+  )
+}
+
+function Login(){
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  async function handleLogin(e){
+    e.preventDefault();
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const snap = await get(child(ref(db), `users/${cred.user.uid}`));
+    const role = snap.exists() ? snap.val().role : 'student';
+    navigate(role === 'teacher' ? '/teacher' : role === 'student' ? '/student' : '/admin');
+  }
+
+  return (
+    <div style={card}>
+      <h3>Login</h3>
+      <form onSubmit={handleLogin}>
+        <div style={{marginBottom:8}}>
+          <label>Email</label><br />
+          <input value={email} onChange={e=>setEmail(e.target.value)} required />
+        </div>
+        <div style={{marginBottom:8}}>
+          <label>Password</label><br />
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} required />
+        </div>
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  )
+}
+
+function Protected({children, role}){
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(()=>{
+    const unsub = onAuthStateChanged(auth, async u =>{
+      if(!u){ navigate('/login'); return; }
+      const snap = await get(child(ref(db), `users/${u.uid}`));
+      const r = snap.exists() ? snap.val().role : null;
+      if(role && r !== role){
+        // not authorized for this role
+        navigate('/');
+        return;
+      }
+      setUser(u);
+      setLoading(false);
+    });
+    return ()=>unsub();
+  },[]);
+
+  if(loading) return <div>Loading...</div>;
+  return children;
+}
+
+/* --------------------------- Teacher App --------------------------- */
+function TeacherApp(){
+  return (
+    <div>
+      <Routes>
+        <Route path="/" element={<TeacherDashboard />} />
+        <Route path="/buy-slots" element={<BuySlots />} />
+        <Route path="/students" element={<TeacherStudents />} />
+        <Route path="/rate" element={<SetRate />} />
+      </Routes>
+    </div>
+  )
+}
+
+function TeacherDashboard(){
+  const [teacher, setTeacher] = useState(null);
+  const [uid, setUid] = useState(null);
+  useEffect(()=> onAuthStateChanged(auth, u =>{
+    if(u){ setUid(u.uid); const tRef = ref(db, `teachers/${u.uid}`); onValue(tRef, snap => setTeacher(snap.val())); }
+  }), []);
+  return (
+    <div>
+      <h2>Teacher Dashboard</h2>
+      <div style={{display:'flex', gap:12}}>
+        <div style={{...card, flex:1}}>
+          <h4>Slots Available</h4>
+          <div style={{fontSize:24}}>{teacher ? teacher.slotsAvailable : '—'}</div>
+        </div>
+        <div style={{...card, flex:1}}>
+          <h4>Students</h4>
+          <div style={{fontSize:24}}>{teacher ? teacher.slotsUsed : '—'}</div>
+        </div>
+      </div>
+      <div style={{marginTop:12}}>
+        <Link to="/teacher/buy-slots">Buy Slots</Link> | <Link to="/teacher/students">My Students</Link> | <Link to="/teacher/rate">Set Rate</Link>
+      </div>
+    </div>
+  )
+}
+
+function BuySlots(){
+  const options = [{slots:5, amount:5000},{slots:10, amount:9000},{slots:20, amount:17000}];
+  const [user, setUser] = useState(null);
+  useEffect(()=> onAuthStateChanged(auth, u=>setUser(u)), []);
+
+  async function buy(option){
+    if(!user) return alert('Login first');
+    // Simulate payment: write purchase and update teacher
+    const purchaseRef = push(ref(db, 'slotPurchases'));
+    await set(purchaseRef, { teacherId: user.uid, slots: option.slots, amount: option.amount, timestamp: Date.now() });
+    const teacherRef = ref(db, `teachers/${user.uid}`);
+    const snap = await get(teacherRef);
+    const current = snap.exists() ? snap.val() : { slotsAvailable:0, slotsPurchased:0 };
+    await update(teacherRef, { slotsAvailable: (current.slotsAvailable || 0) + option.slots, slotsPurchased: (current.slotsPurchased || 0) + option.slots });
+    alert('Purchase recorded (simulation).');
+  }
+
+  return (
+    <div style={card}>
+      <h3>Buy Student Slots</h3>
+      {options.map(o=> (
+        <div key={o.slots} style={{...card, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+          <div>{o.slots} Slots — ₦{o.amount}</div>
+          <button onClick={()=>buy(o)}>Buy</button>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function TeacherStudents(){
+  const [students, setStudents] = useState([]);
+  const [uid, setUid] = useState(null);
+  useEffect(()=> onAuthStateChanged(auth, u=>{ if(u) setUid(u.uid); }), []);
+
+  useEffect(()=>{
+    if(!uid) return;
+    const q = ref(db, 'matches');
+    onValue(q, snap =>{
+      const all = snap.exists() ? snap.val() : {};
+      const arr = Object.keys(all).filter(k=> all[k].teacherId === uid).map(k=> ({ id:k, ...all[k] }));
+      setStudents(arr);
+    })
+  }, [uid]);
+
+  return (
+    <div style={card}>
+      <h3>My Students</h3>
+      {students.length===0 && <div>No matched students yet.</div>}
+      {students.map(s=> (
+        <div key={s.id} style={{borderBottom:'1px solid #eee', padding:8}}>
+          Student: {s.studentId} — Rate: ₦{s.rate} — Payment: {s.paymentMethod}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function SetRate(){
+  const [rate, setRate] = useState('');
+  const [method, setMethod] = useState('direct');
+  const [uid, setUid] = useState(null);
+  useEffect(()=> onAuthStateChanged(auth, u=>{ if(u) setUid(u.uid); }), []);
+
+  async function save(){
+    if(!uid) return alert('Login required');
+    await update(ref(db, `teachers/${uid}`), { ratePerHour: Number(rate), paymentMethod: method });
+    alert('Saved');
+  }
+
+  return (
+    <div style={card}>
+      <h3>Set Your Hourly Rate</h3>
+      <div style={{marginBottom:8}}>
+        <input placeholder="₦ per hour" value={rate} onChange={e=>setRate(e.target.value)} />
+      </div>
+      <div style={{marginBottom:8}}>
+        <label><input type="radio" name="pm" checked={method==='direct'} onChange={()=>setMethod('direct')} /> Direct</label>
+        <label style={{marginLeft:8}}><input type="radio" name="pm" checked={method==='platform'} onChange={()=>setMethod('platform')} /> EnglishHop (15% fee)</label>
+      </div>
+      <button onClick={save}>Save Settings</button>
+    </div>
+  )
+}
+
+/* --------------------------- Student App --------------------------- */
+function StudentApp(){
+  return (
+    <div>
+      <Routes>
+        <Route path="/" element={<StudentDashboard />} />
+        <Route path="/pay" element={<StudentPay />} />
+      </Routes>
+    </div>
+  )
+}
+
+function StudentDashboard(){
+  const [match, setMatch] = useState(null);
+  const [uid, setUid] = useState(null);
+  useEffect(()=> onAuthStateChanged(auth, u=>{ if(u) setUid(u.uid); }), []);
+  useEffect(()=>{
+    if(!uid) return;
+    // find match for this student
+    onValue(ref(db, 'matches'), snap =>{
+      const all = snap.exists() ? snap.val() : {};
+      const found = Object.keys(all).map(k=> ({ id:k, ...all[k] })).find(m=> m.studentId === uid);
+      setMatch(found);
+    });
+  }, [uid]);
+
+  return (
+    <div>
+      <h2>Student Dashboard</h2>
+      <div style={card}>
+        {match ? (
+          <div>
+            <div>Teacher: {match.teacherId}</div>
+            <div>Rate: ₦{match.rate}</div>
+            <div>Payment: {match.paymentMethod}</div>
+            <div style={{marginTop:8}}><Link to="/student/pay">Pay for Lesson</Link></div>
+          </div>
+        ) : <div>No teacher matched yet.</div>}
+      </div>
+    </div>
+  )
+}
+
+function StudentPay(){
+  const [uid, setUid] = useState(null);
+  const [match, setMatch] = useState(null);
+  useEffect(()=> onAuthStateChanged(auth, u=>{ if(u) setUid(u.uid); }), []);
+  useEffect(()=>{
+    if(!uid) return;
+    onValue(ref(db, 'matches'), snap =>{
+      const all = snap.exists() ? snap.val() : {};
+      const found = Object.keys(all).map(k=> ({ id:k, ...all[k] })).find(m=> m.studentId === uid);
+      setMatch(found);
+    });
+  }, [uid]);
+
+  async function pay(){
+    if(!match) return alert('No match');
+    // simulate payment: create payments record and compute fees
+    const amount = match.rate;
+    const platformFee = match.paymentMethod === 'platform' ? Math.round(amount * 0.15) : 0;
+    const teacherReceives = amount - platformFee;
+    const paymentRef = push(ref(db, 'payments'));
+    await set(paymentRef, { studentId: uid, teacherId: match.teacherId, amount, platformFee, teacherReceives, paymentMethod: match.paymentMethod, timestamp: Date.now() });
+    alert('Payment recorded (simulation).');
+  }
+
+  return (
+    <div style={card}>
+      <h3>Pay for Lesson</h3>
+      {match ? (
+        <div>
+          <div>Amount: ₦{match.rate}</div>
+          <div>Payment Method: {match.paymentMethod}</div>
+          <button onClick={pay}>Pay Now (simulate)</button>
+        </div>
+      ) : <div>No matched teacher.</div>}
+    </div>
+  )
+}
+
+/* --------------------------- Admin App --------------------------- */
+function AdminApp(){
+  return (
+    <div>
+      <Routes>
+        <Route path="/" element={<AdminDashboard />} />
+        <Route path="/teachers" element={<AdminTeachers />} />
+        <Route path="/students" element={<AdminStudents />} />
+        <Route path="/match" element={<AdminMatch />} />
+      </Routes>
+    </div>
+  )
+}
+
+function AdminDashboard(){
+  return (
+    <div>
+      <h2>Admin Dashboard</h2>
+      <div style={{display:'flex', gap:12}}>
+        <Link to="/admin/teachers">Teachers</Link>
+        <Link to="/admin/students">Students</Link>
+        <Link to="/admin/match">Match Student</Link>
+      </div>
+    </div>
+  )
+}
+
+function AdminTeachers(){
+  const [list, setList] = useState([]);
+  useEffect(()=>{
+    onValue(ref(db, 'teachers'), snap =>{
+      const val = snap.exists() ? snap.val() : {};
+      setList(Object.keys(val).map(k=> ({ id:k, ...val[k] }))); 
+    });
+  },[]);
+  return (
+    <div style={card}>
+      <h3>Teachers</h3>
+      {list.map(t=> (
+        <div key={t.id} style={{borderBottom:'1px solid #eee', padding:8}}>
+          {t.name} — Slots: {t.slotsAvailable || 0} available / {t.slotsUsed || 0} used
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AdminStudents(){
+  const [list, setList] = useState([]);
+  useEffect(()=>{
+    onValue(ref(db, 'students'), snap =>{
+      const val = snap.exists() ? snap.val() : {};
+      setList(Object.keys(val).map(k=> ({ id:k, ...val[k] }))); 
+    });
+  },[]);
+  return (
+    <div style={card}>
+      <h3>Students</h3>
+      {list.map(s=> (
+        <div key={s.id} style={{borderBottom:'1px solid #eee', padding:8}}>
+          {s.name} — Level: {s.level} — Matched: {s.matchedTeacher || 'No'}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AdminMatch(){
+  const [students, setStudents] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [selStudent, setSelStudent] = useState('');
+  const [selTeacher, setSelTeacher] = useState('');
+  const [rate, setRate] = useState('');
+  const [method, setMethod] = useState('platform');
+
+  useEffect(()=> onValue(ref(db, 'students'), snap =>{
+    const val = snap.exists() ? snap.val() : {};
+    setStudents(Object.keys(val).map(k=> ({ id:k, ...val[k] }))); 
+  }), []);
+  useEffect(()=> onValue(ref(db, 'teachers'), snap =>{
+    const val = snap.exists() ? snap.val() : {};
+    setTeachers(Object.keys(val).map(k=> ({ id:k, ...val[k] }))); 
+  }), []);
+
+  async function match(){
+    if(!selStudent || !selTeacher) return alert('choose both');
+    const matchRef = push(ref(db, 'matches'));
+    await set(matchRef, { teacherId: selTeacher, studentId: selStudent, rate: Number(rate) || 0, paymentMethod: method, createdAt: Date.now() });
+    // decrement slot from teacher
+    const tRef = ref(db, `teachers/${selTeacher}`);
+    const tsnap = await get(tRef);
+    const t = tsnap.exists() ? tsnap.val() : { slotsAvailable:0, slotsUsed:0 };
+    await update(tRef, { slotsAvailable: Math.max((t.slotsAvailable||0)-1,0), slotsUsed: (t.slotsUsed||0)+1 });
+    // update student matchedTeacher
+    await update(ref(db, `students/${selStudent}`), { matchedTeacher: selTeacher });
+    alert('Matched');
+  }
+
+  return (
+    <div style={card}>
+      <h3>Match Student to Teacher</h3>
+      <div style={{marginBottom:8}}>
+        <label>Student</label><br />
+        <select value={selStudent} onChange={e=>setSelStudent(e.target.value)}>
+          <option value="">-- choose --</option>
+          {students.map(s=> <option key={s.id} value={s.id}>{s.name} ({s.id})</option>)}
+        </select>
+      </div>
+      <div style={{marginBottom:8}}>
+        <label>Teacher</label><br />
+        <select value={selTeacher} onChange={e=>setSelTeacher(e.target.value)}>
+          <option value="">-- choose --</option>
+          {teachers.map(t=> <option key={t.id} value={t.id}>{t.name} — Slots: {t.slotsAvailable || 0}</option>)}
+        </select>
+      </div>
+      <div style={{marginBottom:8}}>
+        <label>Rate</label><br />
+        <input value={rate} onChange={e=>setRate(e.target.value)} placeholder="₦ per hour (optional)" />
+      </div>
+      <div style={{marginBottom:8}}>
+        <label>Payment Method</label><br />
+        <select value={method} onChange={e=>setMethod(e.target.value)}>
+          <option value="platform">EnglishHop (15% fee)</option>
+          <option value="direct">Direct</option>
+        </select>
+      </div>
+      <button onClick={match}>Match Student</button>
+    </div>
+  )
+}
+
+export default App;
+
+/*
+====================================
+File: src/index.js
+====================================
+*/
+
+// src/index.js
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
+
+/* End of code bundle. */

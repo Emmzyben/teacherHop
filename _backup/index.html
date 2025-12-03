@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EnglishHub - Learn English With The Right Teacher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ==== Reset & Base ==== */
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; background: #f8f9ff; }
+    img { max-width: 100%; display: block; }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+
+    /* ==== Layout ==== */
+    .container { width: min(90%, 1280px); margin: 0 auto; }
+    .flex { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .text-center { text-align: center; }
+    .btn {
+      display: inline-block; padding: 12px 24px; border-radius: 8px; font-weight: 600;
+      cursor: pointer; transition: all 0.3s;
+    }
+    .btn-primary { background: #0066ff; color: #fff; border: none; }
+    .btn-primary:hover { background: #0052cc; }
+    .btn-secondary { background: #fff; color: #0066ff; border: 2px solid #0066ff; }
+    .btn-secondary:hover { background: #eef4ff; }
+    .btn-orange { background: #ff6200; color: #fff; }
+    .btn-orange:hover { background: #e55a00; }
+
+    /* ==== Header & Nav ==== */
+    header {
+      padding: 1rem 0;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      position: sticky; top: 0; z-index: 1000;
+    }
+    nav ul { gap: 2rem; }
+    nav a { font-weight: 500; }
+    .hamburger { display: none; font-size: 1.8rem; cursor: pointer; }
+
+    /* ==== Hero Section */
+    .hero {
+      padding: 5rem 0 4rem;
+      background: linear-gradient(135deg, #eef4ff 0%, #d9e6ff 100%);
+      text-align: center;
+    }
+    .hero h1 { font-size: clamp(2.5rem, 8vw, 4.5rem); margin-bottom: 1rem; }
+    .hero p { font-size: 1.2rem; max-width: 700px; margin: 0 auto 2rem; color: #555; }
+    .hero-buttons { gap: 1rem; margin: 2rem 0; justify-content: center; }
+    .stats { gap: 3rem; margin-top: 4rem; }
+    .stat-item h3 { font-size: 2.5rem; color: #0066ff; }
+
+    /* Sections */
+    section { padding: 5rem 0; }
+    h2 { font-size: 2.5rem; margin-bottom: 1rem; }
+    .subtitle { color: #666; margin-bottom: 3rem; }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+    .card {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    .card-icon { width: 60px; height: 60px; background: #eef4ff; border-radius: 50%; margin: 0 auto 1rem; display: grid; place-items: center; font-size: 1.8rem; color: #0066ff; }
+
+    /* Pricing */
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem; }
+    .price-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .price-card.popular { border: 3px solid #0066ff; transform: scale(1.05); }
+    .price-card h3 { font-size: 1.8rem; margin-bottom: 1rem; }
+    .price { font-size: 3rem; font-weight: 700; color: #0066ff; margin: 1rem 0; }
+    .price-card ul { margin: 1.5rem 0; text-align: left; }
+    .price-card li { margin-bottom: 0.8rem; }
+
+    /* Teachers */
+    .teachers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem; margin-top: 2rem; }
+    .teacher-card {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .teacher-card img { width: 100%; height: 220px; object-fit: cover; }
+    .teacher-info { padding: 1rem; }
+    .rating { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin: 0.5rem 0; }
+    .stars { color: #ffa500; }
+
+    /* Footer */
+    footer {
+      background: #1a1a2e;
+      color: #ddd;
+      padding: 4rem 0 2rem;
+    }
+    .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
+    .footer-grid a { display: block; margin-bottom: 0.8rem; color: #aaa; }
+    .footer-grid a:hover { color: #fff; }
+    .socials { gap: 1rem; margin-top: 1rem; }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      align-items: center; justify-content: center; z-index: 2000;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: #fff; padding: 2rem; border-radius: 12px; max-width: 600px; width: 90%;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .close-modal { float: right; font-size: 1.8rem; cursor: pointer; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hamburger { display: block; }
+      nav ul { position: fixed; top: 80px; left: -100%; width: 100%; height: calc(100vh - 80px);
+        background: #fff; flex-direction: column; padding: 2rem; transition: left 0.4s; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+      nav ul.active { left: 0; }
+      .hero-buttons { flex-direction: column; }
+      .stats { flex-direction: column; gap: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<header>
+  <div class="container flex">
+    <div class="logo flex" style="align-items:center;gap:0.5rem;">
+      <div style="width:40px;height:40px;background:#0066ff;border-radius:8px;color:#fff;font-size:1.8rem;display:grid;place-items:center;">E</div>
+      <span style="font-size:1.5rem;font-weight:700;">EnglishHub</span>
+    </div>
+    <nav>
+      <ul class="flex">
+        <li><a href="#">How It Works</a></li>
+        <li><a href="#">Features</a></li>
+        <li><a href="#">Teachers</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Log In</a></li>
+        <li><button class="btn btn-primary">Get Started</button></li>
+      </ul>
+      <div class="hamburger">☰</div>
+    </nav>
+  </div>
+</header>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <div class="container text-center">
+    <h1>Learn English With The Right<br><span style="color:#0066ff;">Teacher — Anytime, Anywhere</span></h1>
+    <p>Find qualified English tutors, book lessons instantly, and start learning.<br>Teachers can join, advertise, and get students fast.</p>
+    <div class="hero-buttons flex">
+      <button class="btn btn-primary" style="padding:16px 32px;font-size:1.1rem;">Find a Teacher</button>
+      <button class="btn btn-secondary become-teacher-btn" style="padding:16px 32px;font-size:1.1rem;">Become a Teacher</button>
+    </div>
+    <div class="flex stats">
+      <div class="stat-item">
+        <h3>500+</h3><p>Verified Teachers</p>
+      </div>
+      <div class="stat-item">
+        <h3>10K+</h3><p>Active Students</p>
+      </div>
+      <div class="stat-item">
+        <h3>50K+</h3><p>Lessons Completed</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOR TEACHERS SECTION ==================== -->
+<section class="text-center">
+  <div class="container">
+    <button class="btn" style="background:#e3ecff;color:#0066ff;margin-bottom:2rem;">For Teachers</button>
+    <h2>Grow Your Teaching Business</h2>
+    <p class="subtitle">Join our platform and reach thousands of eager English learners</p>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">✨</div>
+        <h3>Create Your Teaching Profile</h3>
+        <p>Add your experience, pricing, availability, intro video, and subjects.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💳</div>
+        <h3>Choose How You Want to Get Paid</h3>
+        <p>Receive payments directly from students OR use our platform payment system.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📢</div>
+        <h3>Buy Ad Packages & Get Students</h3>
+        <p>Boost your profile, pay for the number of students you want, and start teaching online.</p>
+      </div>
+    </div>
+    <button class="btn btn-orange become-teacher-btn" style="margin-top:3rem;padding:16px 40px;font-size:1.1rem;">Become a Teacher</button>
+  </div>
+</section>
+
+<!-- ==================== PRICING (Teacher Ads) ==================== -->
+<section style="background:#f5f7ff;">
+  <div class="container text-center">
+    <h2>Teacher Advertising & Student Acquisition Plans</h2>
+    <p class="subtitle">Choose the plan that fits your goals. Pay for visibility or pay per student acquired.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>Bronze Plan</h3>
+        <p>Basic visibility for new teachers</p>
+        <div class="price">$29<span style="font-size:1rem;">/month</span></div>
+        <ul>
+          <li>✓ Profile listing in search</li>
+          <li>✓ Up to 5 student inquiries/month</li>
+          <li>✓ Basic analytics</li>
+          <li>✓ Email support</li>
+        </ul>
+        <button class="btn btn-secondary">Get Started</button>
+      </div>
+      <div class="price-card popular">
+        <span style="position:absolute;top:-15px;left:50%;transform:translateX(-50%);background:#0066ff;color:#fff;padding:5px 20px;border-radius:30px;font-size:0.9rem;">Most Popular</span>
+        <h3>Silver Plan</h3>
+        <p>High visibility + more impressions</p>
+        <div class="price">$59<span style="font-size:1rem;">/month</span></div>
+        <ul>
+          <li>✓ Priority listing in search</li>
+          <li>✓ Up to 15 student inquiries/month</li>
+          <li>✓ Featured in category pages</li>
+          <li>✓ Advanced analytics</li>
+          <li>✓ Priority support</li>
+          <li>✓ Profile badge</li>
+        </ul>
+        <button class="btn btn-primary">Get Started</button>
+      </div>
+      <div class="price-card">
+        <h3>Gold Plan</h3>
+        <p>Maximum visibility everywhere</p>
+        <div class="price">$99<span style="font-size:1rem;">/month</span></div>
+        <ul>
+          <li>✓ Top listing in all searches</li>
+          <li>✓ Unlimited student inquiries</li>
+          <li>✓ Featured on homepage</li>
+          <li>✓ Full analytics suite</li>
+          <li>✓ 24/7 priority support</li>
+          <li>✓ Verified teacher badge</li>
+          <li>✓ Social media promotion</li>
+        </ul>
+        <button class="btn btn-secondary">Get Started</button>
+      </div>
+    </div>
+
+    <div style="margin-top:4rem;">
+      <h3>Pay Per Student Acquisition</h3>
+      <p>Don’t want a monthly plan? Pay for the exact number of students you want. We promote your profile until you reach your target.</p>
+      <div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;margin:2rem 0;">
+        <div style="background:#eef4ff;padding:1.5rem 2rem;border-radius:12px;text-align:center;">
+          <strong>5 students</strong><br>$49
+        </div>
+        <div style="background:#eef4ff;padding:1.5rem 2rem;border-radius:12px;text-align:center;">
+          <strong>10 students</strong><br>$89
+        </div>
+        <div style="background:#eef4ff;padding:1.5rem 2rem;border-radius:12px;text-align:center;">
+          <strong>20 students</strong><br>$159
+        </div>
+      </div>
+      <button class="btn btn-orange">View All Plans</button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TOP TEACHERS ==================== -->
+<section class="text-center">
+  <div class="container">
+    <h2>Meet Our Top English Teachers</h2>
+    <p class="subtitle">Discover experienced and certified English tutors ready to help you speak confidently.</p>
+    <div class="teachers-grid">
+      <!-- Example teacher cards -->
+      <div class="teacher-card">
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" alt="Sarah">
+        <div class="teacher-info">
+          <h4>Sarah Johnson</h4>
+          <p>Business English • United States</p>
+          <div class="rating">★★★★☆ <span>4.9</span></div>
+          <p>8 years • 127 reviews</p>
+          <div style="margin:1rem 0;display:flex;gap:1rem;justify-content:center;">
+            <strong>$25/lesson</strong>
+            <button class="btn btn-primary">View Profile</button>
+          </div>
+        </div>
+      </div>
+      <!-- Repeat similar blocks for other teachers... -->
+      <!-- (You can copy-paste more) -->
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MODAL - Become a Teacher Popup ==================== -->
+<div class="modal" id="teacherModal">
+  <div class="modal-content">
+    <span class="close-modal">×</span>
+    <h2>How EnglishHub Works for Teachers</h2>
+    <ol style="text-align:left;margin:2rem 0;line-height:1.8;font-size:1.1rem;">
+      <li><strong>1. Buy Your Student Slots</strong><br>As a teacher, you start by purchasing the number of students you want to teach.<br>This fee is used by EnglishHub to advertise and bring students to you.</li><br>
+      <li><strong>2. Get Matched with Students</strong><br>Once students are matched to you, it’s up to you to decide how much to charge them.<br>You can set your own rate per hour or negotiate individually with each student.<br>While you have flexibility, the preferred method is to charge per hour using the system we provide.</li><br>
+      <li><strong>3. Teaching and Payment</strong><br>You teach the students assigned to you.<br>Students can pay directly through your chosen method or via EnglishHub’s payment system.</li><br>
+      <li><strong>4. Fees</strong><br>If you use EnglishHub’s payment system, we take a 15% service fee from the amount you receive.<br>Otherwise, the full amount goes directly to you.</li><br>
+      <li><strong>5. Flexibility</strong><br>EnglishHub handles student matching and advertising, but you remain in control of pricing, scheduling, and teaching style.</li>
+    </ol>
+    <button class="btn btn-primary" style="width:100%;padding:14px;">Become a Teacher →</button>
+  </div>
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <h3 style="color:#fff;margin-bottom:1rem;">EnglishHub</h3>
+      <p>Connecting English learners<br>with qualified teachers<br>worldwide.</p>
+      <div class="socials flex">
+        <a href="#">f</a><a href="#">t</a><a href="#">i</a><a href="#">in</a><a href="#">y</a>
+      </div>
+    </div>
+    <div>
+      <h4>Platform</h4>
+      <a href="#">About Us</a>
+      <a href="#">How It Works</a>
+      <a href="#">Features</a>
+      <a href="#">Pricing</a>
+    </div>
+    <div>
+      <h4>For Teachers</h4>
+      <a href="#">Teacher Registration</a>
+      <a href="#">Advertising Plans</a>
+      <a href="#">Teacher Resources</a>
+      <a href="#">Success Stories</a>
+    </div>
+    <div>
+      <h4>For Students</h4>
+      <a href="#">Student Registration</a>
+      <a href="#">Find Teachers</a>
+      <a href="#">Learning Resources</a>
+      <a href="#">Student FAQ</a>
+    </div>
+    <div>
+      <h4>Support</h4>
+      <a href="#">Contact Support</a>
+      <a href="#">Help Center</a>
+      <a href="#">Terms & Conditions</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+  </div>
+  <div class="text-center" style="margin-top:3rem;color:#888;font-size:0.9rem;">
+    © 2025 EnglishHub. All rights reserved.
+  </div>
+</footer>
+
+<script>
+  // Hamburger menu
+  const hamburger = document.querySelector('.hamburger');
+  const navUl = document.querySelector('nav ul');
+
+  hamburger.addEventListener('click', () => {
+    navUl.classList.toggle('active');
+  });
+
+  // Modal
+  const modal = document.getElementById('teacherModal');
+  const openBtns = document.querySelectorAll('.become-teacher-btn');
+  const closeBtn = document.querySelector('.close-modal');
+
+  openBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      modal.classList.add('active');
+    });
+  });
+
+  closeBtn.addEventListener('click', () => {
+    modal.classList.remove('active');
+  });
+
+  // Close modal when clicking outside
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('active');
+  });
+</script>
+</body>
+</html>
