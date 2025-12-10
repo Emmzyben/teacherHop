@@ -18,6 +18,8 @@ import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import BrowseTeachers from './pages/BrowseTeachers';
+import TeacherDetails from './pages/TeacherDetails';
 
 // Teacher Pages
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -26,6 +28,7 @@ import TeacherStudents from './pages/teacher/TeacherStudents';
 import SetRate from './pages/teacher/SetRate';
 import TeacherPayments from './pages/teacher/TeacherPayments';
 import TeacherChat from './pages/teacher/TeacherChat';
+import TeacherProfile from './pages/teacher/TeacherProfile';
 
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -52,6 +55,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/browse-teachers" element={<BrowseTeachers />} />
+              <Route path="/teacher-profile/:teacherId" element={<TeacherDetails />} />
 
               {/* Teacher Routes - Nested */}
               <Route path="/teacher" element={<Protected role="teacher"><TeacherLayout /></Protected>}>
@@ -61,6 +66,7 @@ function App() {
                 <Route path="rate" element={<SetRate />} />
                 <Route path="payments" element={<TeacherPayments />} />
                 <Route path="chat" element={<TeacherChat />} />
+                <Route path="profile" element={<TeacherProfile />} />
               </Route>
 
               {/* Student Routes - Nested */}

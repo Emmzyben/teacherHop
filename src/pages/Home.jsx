@@ -31,7 +31,7 @@ function Home() {
                         Teachers can join, advertise, and get students fast.
                     </p>
                     <div className="hero-buttons">
-                        <Link to="/register" className="btn-primary-lg">Become a Student</Link>
+                        <Link to="/browse-teachers" className="btn-primary-lg">Browse Teachers</Link>
                         <Link to="/register" className="btn-secondary-lg">Become a Teacher</Link>
                     </div>
 
@@ -174,7 +174,7 @@ function Home() {
 const faqs = [
     {
         question: "How do I find a teacher?",
-        answer: "You will be matched with a teacher based on your goals, level, budget, and schedule."
+        answer: "Browse our teacher directory, view their profiles, and choose the one that best fits your learning goals and schedule. You can start learning immediately!"
     },
 
     {
@@ -189,6 +189,7 @@ const faqs = [
         question: "What if I need to cancel a lesson?",
         answer: "You can cancel or reschedule a lesson up to 24 hours before the start time for free. Late cancellations may be subject to a fee depending on the teacher's policy."
     }
+
 ];
 
 export default Home;

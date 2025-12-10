@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, createUserWithEmailAndPassword, ref, set, db } from '../../lib/firebase';
 import { Eye, EyeOff } from 'lucide-react';
+import TeacherTermsModal from '../../components/TeacherTermsModal';
 
 function Register() {
     const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ function Register() {
     const [role, setRole] = useState('teacher');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
 
     const validatePassword = (pass) => {
@@ -29,7 +31,16 @@ function Register() {
             return;
         }
 
+        if (role === 'teacher') {
+            setShowModal(true);
+        } else {
+            performRegistration();
+        }
+    }
+
+    async function performRegistration() {
         setLoading(true);
+        setShowModal(false); // Close modal if open
 
         try {
             const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -141,6 +152,12 @@ function Register() {
                 </form>
                 <p className="auth-footer">Already have an account? <Link to="/login">Login here</Link></p>
             </div>
+
+            <TeacherTermsModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                onProceed={performRegistration}
+            />
         </div>
     );
 }

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { auth, onAuthStateChanged, ref, onValue, db } from '../../lib/firebase';
 
-import { Users, Calendar, Banknote, Wallet, CreditCard } from 'lucide-react';
+import { Users, Calendar, Banknote, Wallet, CreditCard, AlertCircle } from 'lucide-react';
 
 function TeacherDashboard() {
     const [teacher, setTeacher] = useState(null);
@@ -62,8 +62,98 @@ function TeacherDashboard() {
         }
     };
 
+    // Check profile completeness
+    const isProfileIncomplete = () => {
+        if (!teacher) return false;
+
+        const missingFields = [];
+
+        if (!teacher.name || teacher.name.trim() === '') missingFields.push('Name');
+        if (!teacher.bio || teacher.bio.trim() === '') missingFields.push('Bio');
+        if (!teacher.qualifications || teacher.qualifications.trim() === '') missingFields.push('Qualifications');
+        if (!teacher.ratePerHour || teacher.ratePerHour === 0) missingFields.push('Hourly Rate');
+
+        // Check bank details if using direct payment
+        if (teacher.paymentMethod === 'direct') {
+            if (!teacher.bankDetails ||
+                !teacher.bankDetails.bankName ||
+                !teacher.bankDetails.accountNumber ||
+                !teacher.bankDetails.accountName) {
+                missingFields.push('Bank Details');
+            }
+        }
+
+        return missingFields;
+    };
+
+    const missingFields = isProfileIncomplete();
+    const showProfileBanner = missingFields && missingFields.length > 0;
+
     return (
         <div>
+            {/* Profile Completion Banner */}
+            {showProfileBanner && (
+                <div style={{
+                    background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                    border: '2px solid #f59e0b',
+                    borderRadius: '12px',
+                    padding: '1.25rem',
+                    marginBottom: '2rem',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '1rem',
+                    boxShadow: '0 4px 6px rgba(245, 158, 11, 0.1)'
+                }}>
+                    <AlertCircle size={24} color="#f59e0b" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div style={{ flex: 1 }}>
+                        <h4 style={{
+                            margin: '0 0 0.5rem 0',
+                            color: '#92400e',
+                            fontSize: '1.1rem',
+                            fontWeight: '600'
+                        }}>
+                            Complete Your Profile
+                        </h4>
+                        <p style={{
+                            margin: '0 0 0.75rem 0',
+                            color: '#78350f',
+                            fontSize: '0.95rem',
+                            lineHeight: '1.5'
+                        }}>
+                            Your profile is incomplete. Complete it to attract more students and provide them with essential information.
+                        </p>
+                        <p style={{
+                            margin: '0 0 1rem 0',
+                            color: '#92400e',
+                            fontSize: '0.9rem',
+                            fontWeight: '500'
+                        }}>
+                            Missing: {missingFields.join(', ')}
+                        </p>
+                        <Link
+                            to="/teacher/profile"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                background: '#f59e0b',
+                                color: 'white',
+                                padding: '0.5rem 1rem',
+                                borderRadius: '6px',
+                                fontWeight: '600',
+                                fontSize: '0.9rem',
+                                textDecoration: 'none',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.background = '#d97706'}
+                            onMouseOut={(e) => e.currentTarget.style.background = '#f59e0b'}
+                        >
+                            Complete Profile Now
+                        </Link>
+                    </div>
+                </div>
+            )}
+
             <div className="dashboard-stats">
                 <div className="stat-card compact">
                     <div className="stat-icon-wrapper blue">
@@ -89,7 +179,7 @@ function TeacherDashboard() {
                     </div>
                     <div className="stat-content">
                         <h4>Hourly Rate</h4>
-                        <div className="stat-value">₦{teacher ? teacher.ratePerHour || 0 : '—'}</div>
+                        <div className="stat-value">${teacher ? teacher.ratePerHour || 0 : '—'}</div>
                     </div>
                 </div>
                 <div className="stat-card compact">
@@ -99,7 +189,7 @@ function TeacherDashboard() {
                     <div className="stat-content">
                         <h4>Total Earned</h4>
                         <div className="stat-value" style={{ color: '#10b981' }}>
-                            ₦{payments.filter(p => p.confirmed === true).reduce((acc, p) => acc + (p.teacherReceives || 0), 0).toLocaleString()}
+                            ${payments.filter(p => p.confirmed === true).reduce((acc, p) => acc + (p.teacherReceives || 0), 0).toLocaleString()}
                         </div>
                     </div>
                 </div>
@@ -127,10 +217,10 @@ function TeacherDashboard() {
                                 <div>
                                     <strong>Student ID: {s.studentId}</strong>
                                     <p>
-                                        Agreed Rate: ₦{s.rate}/hr
+                                        Agreed Rate: ${s.rate}/hr
                                         {teacher && teacher.ratePerHour && s.rate !== teacher.ratePerHour && (
                                             <span style={{ color: '#ef4444', fontSize: '0.9em', marginLeft: '5px' }}>
-                                                (Standard: ₦{teacher.ratePerHour})
+                                                (Standard: ${teacher.ratePerHour})
                                             </span>
                                         )}
                                         <br />
@@ -150,7 +240,7 @@ function TeacherDashboard() {
                                     </span>
                                     {payInfo.status === 'Paid' && (
                                         <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>
-                                            Paid ₦{payInfo.amount} via {payInfo.method}
+                                            Paid ${payInfo.amount} via {payInfo.method}
                                         </p>
                                     )}
                                 </div>

@@ -5,9 +5,9 @@ import { useNotification } from '../../contexts/NotificationContext';
 function BuySlots() {
     const { showSuccess, showError } = useNotification();
     const options = [
-        { slots: 5, amount: 5000 },
-        { slots: 10, amount: 9000 },
-        { slots: 20, amount: 17000 }
+        { slots: 5, amount: 5 },
+        { slots: 10, amount: 10 },
+        { slots: 20, amount: 15 }
     ];
     const [user, setUser] = useState(null);
 
@@ -51,7 +51,7 @@ function BuySlots() {
                     <div key={o.slots} className="slot-option">
                         <div className="slot-info">
                             <strong>{o.slots} Slots</strong>
-                            <span>₦{o.amount.toLocaleString()}</span>
+                            <span>${o.amount.toLocaleString()}</span>
                         </div>
                         <button onClick={() => buy(o)} className="btn-primary">Buy</button>
                     </div>

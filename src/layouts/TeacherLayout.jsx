@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, Users, DollarSign, CreditCard, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, DollarSign, CreditCard, MessageCircle, User } from 'lucide-react';
 import { auth, onAuthStateChanged, ref, onValue, db } from '../lib/firebase';
 
 function TeacherLayout() {
@@ -102,6 +102,10 @@ function TeacherLayout() {
                         <Link to="/teacher/rate" className="btn-secondary">
                             <DollarSign size={18} />
                             <span>Set Rate</span>
+                        </Link>
+                        <Link to="/teacher/profile" className="btn-secondary">
+                            <User size={18} />
+                            <span>Profile</span>
                         </Link>
                     </nav>
                 </div>

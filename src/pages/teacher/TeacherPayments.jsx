@@ -98,10 +98,10 @@ function TeacherPayments() {
                                             <strong style={{ fontSize: '1.1rem' }}>{getStudentName(payment.studentId)}</strong>
                                         </div>
                                         <p style={{ margin: '4px 0', color: '#666' }}>
-                                            <strong>Amount:</strong> ₦{payment.amount?.toLocaleString()}
+                                            <strong>Amount:</strong> ${payment.amount?.toLocaleString()}
                                         </p>
                                         <p style={{ margin: '4px 0', color: '#666' }}>
-                                            <strong>You'll Receive:</strong> ₦{payment.teacherReceives?.toLocaleString()}
+                                            <strong>You'll Receive:</strong> ${payment.teacherReceives?.toLocaleString()}
                                         </p>
                                         <p style={{ margin: '4px 0', color: '#888', fontSize: '0.9rem' }}>
                                             Submitted: {new Date(payment.timestamp).toLocaleString()}
@@ -139,7 +139,7 @@ function TeacherPayments() {
                                     <div>
                                         <strong>{getStudentName(payment.studentId)}</strong>
                                         <p style={{ fontSize: '0.9rem', color: '#666', margin: '4px 0' }}>
-                                            ₦{payment.amount?.toLocaleString()} ({payment.paymentMethod === 'platform' ? 'Platform' : 'Direct'})
+                                            ${payment.amount?.toLocaleString()} ({payment.paymentMethod === 'platform' ? 'Platform' : 'Direct'})
                                         </p>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>

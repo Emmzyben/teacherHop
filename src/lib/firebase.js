@@ -32,7 +32,10 @@ export {
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    updatePassword,
+    EmailAuthProvider,
+    reauthenticateWithCredential
 } from 'firebase/auth';
 
 // Database functions

@@ -76,6 +76,7 @@ function Header() {
                     {/* Navigation */}
                     <nav className={`nav ${mobileMenuOpen ? 'nav-open' : ''}`}>
                         <Link to="/" onClick={closeMobileMenu}>Home</Link>
+                        <Link to="/browse-teachers" onClick={closeMobileMenu}>Browse Teachers</Link>
                         {user && role && (
                             <Link to={getDashboardLink()} onClick={closeMobileMenu}>Dashboard</Link>
                         )}

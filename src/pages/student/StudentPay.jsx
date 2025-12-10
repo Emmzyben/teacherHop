@@ -83,7 +83,7 @@ function StudentPay() {
                         <div style={{ fontSize: '40px', marginBottom: '10px' }}>✅</div>
                         <h4>Payment Confirmed</h4>
                         <p style={{ color: '#666', margin: '10px 0' }}>
-                            You have successfully paid <strong>₦{payment.amount}</strong> via {payment.paymentMethod === 'platform' ? 'EnglishHop' : 'Direct Transfer'}.
+                            You have successfully paid <strong>${payment.amount}</strong> via {payment.paymentMethod === 'platform' ? 'EnglishHop' : 'Direct Transfer'}.
                         </p>
                         <p style={{ fontWeight: 'bold', color: '#0066ff' }}>Your lessons are currently active.</p>
                     </div>
@@ -92,7 +92,7 @@ function StudentPay() {
                         <div style={{ fontSize: '40px', marginBottom: '10px' }}>⏳</div>
                         <h4 style={{ color: '#f97316' }}>Awaiting Teacher Confirmation</h4>
                         <p style={{ color: '#666', margin: '10px 0' }}>
-                            You've marked the payment of <strong>₦{payment.amount}</strong> as sent via Direct Transfer.
+                            You've marked the payment of <strong>${payment.amount}</strong> as sent via Direct Transfer.
                         </p>
                         <p style={{ color: '#f97316', fontWeight: '600' }}>
                             Your teacher needs to confirm receipt before lessons can begin.
@@ -108,7 +108,7 @@ function StudentPay() {
             <h3>Pay for Lesson</h3>
             {match ? (
                 <div>
-                    <p><strong>Amount:</strong> ₦{match.rate}</p>
+                    <p><strong>Amount:</strong> ${match.rate}</p>
                     <p><strong>Payment Method:</strong> {match.paymentMethod === 'platform' ? 'EnglishHop Secure Payment' : 'Direct Transfer to Teacher'}</p>
 
                     {match.paymentMethod === 'direct' && teacher && teacher.bankDetails && (
@@ -126,7 +126,7 @@ function StudentPay() {
                                 </div>
                             )}
                             <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '10px' }}>
-                                Please transfer <strong>₦{match.rate}</strong> to the account above and then click the button below.
+                                Please transfer <strong>${match.rate}</strong> to the account above and then click the button below.
                             </p>
                         </div>
                     )}

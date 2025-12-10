@@ -7,7 +7,6 @@ function StudentChat() {
     const [uid, setUid] = useState(null);
     const [match, setMatch] = useState(null);
     const [teacher, setTeacher] = useState(null);
-    const [payment, setPayment] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -28,17 +27,8 @@ function StudentChat() {
             setMatch(found);
         });
 
-        // Fetch payment
-        const paymentsRef = ref(db, 'payments');
-        const unsubPayments = onValue(paymentsRef, (snap) => {
-            const all = snap.exists() ? snap.val() : {};
-            const found = Object.values(all).find(p => p.studentId === uid && p.confirmed);
-            setPayment(found);
-        });
-
         return () => {
             unsubMatches();
-            unsubPayments();
         };
     }, [uid]);
 
@@ -65,18 +55,6 @@ function StudentChat() {
                 <div className="empty-state">
                     <MessageCircle size={48} color="#ccc" />
                     <p>You need to be matched with a teacher first.</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!payment) {
-        return (
-            <div className="content-card">
-                <h3>Chat</h3>
-                <div className="empty-state">
-                    <MessageCircle size={48} color="#ccc" />
-                    <p>Chat will be available after payment is confirmed.</p>
                 </div>
             </div>
         );

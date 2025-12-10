@@ -35,7 +35,7 @@ function TeacherStudents() {
                 <div key={s.id} className="list-item">
                     <div>
                         <strong>Student: {s.studentId}</strong>
-                        <p>Rate: ₦{s.rate} — Payment: {s.paymentMethod}</p>
+                        <p>Rate: ${s.rate} — Payment: {s.paymentMethod}</p>
                     </div>
                 </div>
             ))}

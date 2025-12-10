@@ -1,0 +1,65 @@
+{
+    "rules": {
+        "users": {
+            "$uid": {
+                ".read": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin'",
+                ".write": "$uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+            }
+        },
+        "teachers": {
+            ".read": true,
+            "$teacherId": {
+                ".write": "auth.uid === $teacherId || root.child('users').child(auth.uid).child('role').val() === 'admin' || auth != null",
+                "slotsAvailable": {
+                    ".write": "auth != null"
+                },
+                "slotsUsed": {
+                    ".write": "auth != null"
+                }
+            }
+        },
+        "students": {
+            ".read": "auth != null",
+            "$studentId": {
+                ".write": "auth.uid === $studentId || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+            }
+        },
+        "matches": {
+            ".read": "auth != null",
+            ".write": "auth != null",
+            "$matchId": {
+                ".read": "auth != null",
+                ".write": "auth != null"
+            }
+        },
+        "slotPurchases": {
+            ".read": "auth != null",
+            ".write": "auth != null",
+            "$purchaseId": {
+                ".read": "auth != null",
+                ".write": "auth != null"
+            }
+        },
+        "payments": {
+            ".read": "auth != null",
+            ".write": "auth != null",
+            "$paymentId": {
+                ".read": "auth != null",
+                ".write": "auth != null"
+            }
+        },
+        "chats": {
+            ".read": "auth != null",
+            "$chatId": {
+                ".read": "auth != null",
+                ".write": "auth != null"
+            }
+        },
+        "messages": {
+            "$chatId": {
+                ".read": "auth != null",
+                ".write": "auth != null"
+            }
+        }
+    }
+}

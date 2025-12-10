@@ -114,7 +114,7 @@ function AdminDashboard() {
                                 <tr>
                                     <th>Student</th>
                                     <th>Teacher</th>
-                                    <th>Rate (₦/hr)</th>
+                                    <th>Rate ($/hr)</th>
                                     <th>Payment Method</th>
                                     <th>Payment Status</th>
                                     <th>Matched On</th>
@@ -137,7 +137,7 @@ function AdminDashboard() {
                                                     <strong>{getTeacherName(match.teacherId)}</strong>
                                                 </div>
                                             </td>
-                                            <td>₦{match.rate?.toLocaleString() || 0}</td>
+                                            <td>${match.rate?.toLocaleString() || 0}</td>
                                             <td>
                                                 <span className={`payment-badge ${match.paymentMethod}`}>
                                                     {match.paymentMethod === 'platform' ? 'Platform' : 'Direct'}
@@ -148,7 +148,7 @@ function AdminDashboard() {
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                         <CheckCircle size={18} color="#10b981" />
                                                         <span style={{ color: '#10b981', fontWeight: '600' }}>
-                                                            Paid (₦{paymentStatus.amount?.toLocaleString()})
+                                                            Paid (${paymentStatus.amount?.toLocaleString()})
                                                         </span>
                                                     </div>
                                                 ) : paymentStatus.pending ? (

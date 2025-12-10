@@ -109,7 +109,7 @@ function AdminMatch() {
                 </select>
             </div>
             <div className="form-group">
-                <label>Rate (₦/hour)</label>
+                <label>Rate ($/hour)</label>
                 <input
                     type="number"
                     value={rate}

@@ -79,7 +79,7 @@ function AdminTeachers() {
                                         <Banknote size={18} />
                                         <span>Hourly Rate</span>
                                     </div>
-                                    <div className="profile-value">₦{selectedTeacher.ratePerHour || 0}</div>
+                                    <div className="profile-value">${selectedTeacher.ratePerHour || 0}</div>
                                 </div>
 
                                 <div className="profile-field">

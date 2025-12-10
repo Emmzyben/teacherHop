@@ -6,7 +6,6 @@ import { MessageCircle, Users } from 'lucide-react';
 function TeacherChat() {
     const [uid, setUid] = useState(null);
     const [students, setStudents] = useState([]);
-    const [payments, setPayments] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [studentsData, setStudentsData] = useState({});
     const [loading, setLoading] = useState(true);
@@ -29,16 +28,6 @@ function TeacherChat() {
             setStudents(teacherStudents);
         });
 
-        // Fetch confirmed payments
-        const paymentsRef = ref(db, 'payments');
-        const unsubPayments = onValue(paymentsRef, (snap) => {
-            const all = snap.exists() ? snap.val() : {};
-            const confirmedPayments = Object.values(all).filter(
-                p => p.teacherId === uid && p.confirmed
-            );
-            setPayments(confirmedPayments);
-        });
-
         // Fetch students data
         const studentsRef = ref(db, 'students');
         const unsubStudents = onValue(studentsRef, (snap) => {
@@ -49,7 +38,6 @@ function TeacherChat() {
 
         return () => {
             unsubMatches();
-            unsubPayments();
             unsubStudents();
         };
     }, [uid]);
@@ -58,23 +46,17 @@ function TeacherChat() {
         return studentsData[studentId]?.name || studentId;
     };
 
-    const hasConfirmedPayment = (studentId) => {
-        return payments.some(p => p.studentId === studentId);
-    };
-
-    const confirmedStudents = students.filter(s => hasConfirmedPayment(s.studentId));
-
     if (loading) {
         return <div className="loading">Loading...</div>;
     }
 
-    if (confirmedStudents.length === 0) {
+    if (students.length === 0) {
         return (
             <div className="content-card">
                 <h3>Student Chats</h3>
                 <div className="empty-state">
                     <MessageCircle size={48} color="#ccc" />
-                    <p>No students with confirmed payments yet.</p>
+                    <p>No students matched yet.</p>
                 </div>
             </div>
         );
@@ -89,7 +71,7 @@ function TeacherChat() {
                     Students
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {confirmedStudents.map((student) => (
+                    {students.map((student) => (
                         <div
                             key={student.studentId}
                             onClick={() => setSelectedStudent(student)}
@@ -105,7 +87,7 @@ function TeacherChat() {
                         >
                             <strong>{getStudentName(student.studentId)}</strong>
                             <p style={{ fontSize: '0.85rem', color: '#666', margin: '4px 0 0 0' }}>
-                                ₦{student.rate}/hr
+                                ${student.rate}/hr
                             </p>
                         </div>
                     ))}

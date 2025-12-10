@@ -270,7 +270,7 @@ function TeacherDashboard(){
 }
 
 function BuySlots(){
-  const options = [{slots:5, amount:5000},{slots:10, amount:9000},{slots:20, amount:17000}];
+  const options = [{slots:5, amount:5},{slots:10, amount:10},{slots:20, amount:15}];
   const [user, setUser] = useState(null);
   useEffect(()=> onAuthStateChanged(auth, u=>setUser(u)), []);
 
@@ -291,7 +291,7 @@ function BuySlots(){
       <h3>Buy Student Slots</h3>
       {options.map(o=> (
         <div key={o.slots} style={{...card, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-          <div>{o.slots} Slots — ₦{o.amount}</div>
+          <div>{o.slots} Slots — ${o.amount}</div>
           <button onClick={()=>buy(o)}>Buy</button>
         </div>
       ))}
@@ -320,7 +320,7 @@ function TeacherStudents(){
       {students.length===0 && <div>No matched students yet.</div>}
       {students.map(s=> (
         <div key={s.id} style={{borderBottom:'1px solid #eee', padding:8}}>
-          Student: {s.studentId} — Rate: ₦{s.rate} — Payment: {s.paymentMethod}
+          Student: {s.studentId} — Rate: ${s.rate} — Payment: {s.paymentMethod}
         </div>
       ))}
     </div>
@@ -343,7 +343,7 @@ function SetRate(){
     <div style={card}>
       <h3>Set Your Hourly Rate</h3>
       <div style={{marginBottom:8}}>
-        <input placeholder="₦ per hour" value={rate} onChange={e=>setRate(e.target.value)} />
+        <input placeholder="$ per hour" value={rate} onChange={e=>setRate(e.target.value)} />
       </div>
       <div style={{marginBottom:8}}>
         <label><input type="radio" name="pm" checked={method==='direct'} onChange={()=>setMethod('direct')} /> Direct</label>
@@ -387,7 +387,7 @@ function StudentDashboard(){
         {match ? (
           <div>
             <div>Teacher: {match.teacherId}</div>
-            <div>Rate: ₦{match.rate}</div>
+            <div>Rate: ${match.rate}</div>
             <div>Payment: {match.paymentMethod}</div>
             <div style={{marginTop:8}}><Link to="/student/pay">Pay for Lesson</Link></div>
           </div>
@@ -426,7 +426,7 @@ function StudentPay(){
       <h3>Pay for Lesson</h3>
       {match ? (
         <div>
-          <div>Amount: ₦{match.rate}</div>
+          <div>Amount: ${match.rate}</div>
           <div>Payment Method: {match.paymentMethod}</div>
           <button onClick={pay}>Pay Now (simulate)</button>
         </div>
@@ -552,7 +552,7 @@ function AdminMatch(){
       </div>
       <div style={{marginBottom:8}}>
         <label>Rate</label><br />
-        <input value={rate} onChange={e=>setRate(e.target.value)} placeholder="₦ per hour (optional)" />
+        <input value={rate} onChange={e=>setRate(e.target.value)} placeholder="$ per hour (optional)" />
       </div>
       <div style={{marginBottom:8}}>
         <label>Payment Method</label><br />
